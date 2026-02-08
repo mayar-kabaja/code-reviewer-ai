@@ -13,9 +13,10 @@ out/
 build
 dist
 
-# Backend
-backend/dist
-backend/node_modules
+# Backend Python
+backend-python/.venv
+__pycache__/
+*.pyc
 
 # Debug
 npm-debug.log*

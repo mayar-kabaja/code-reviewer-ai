@@ -5,7 +5,7 @@
   "packageManager": "pnpm@9.14.2",
   "scripts": {
     "dev": "pnpm --prefix frontend dev",
-    "dev:backend": "pnpm --prefix backend dev",
+    "dev:backend": "cd backend-python && .venv/bin/uvicorn app:app --reload --port 8000",
     "build": "pnpm --prefix frontend build",
     "start": "pnpm --prefix frontend start",
     "lint": "pnpm --prefix frontend lint"

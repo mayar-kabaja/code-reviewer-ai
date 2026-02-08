@@ -1,8 +1,8 @@
 "use client";
 
+import { type MutableRefObject } from "react";
 import { CodeEditor } from "./CodeEditor";
 import { Button } from "./ui/Button";
-import { SAMPLE_CODE } from "@/lib/constants";
 import type { ReviewReport } from "@/lib/types";
 
 interface EditorPanelProps {
@@ -10,10 +10,13 @@ interface EditorPanelProps {
   language: string;
   report: ReviewReport | null;
   loading: boolean;
+  editorKey?: number;
+  getEditorValueRef?: MutableRefObject<() => string>;
   onCodeChange: (code: string) => void;
   onLanguageChange: (lang: string) => void;
   onAnalyze: () => void;
   onClear: () => void;
+  onLoadSample?: () => void;
 }
 
 export function EditorPanel({
@@ -21,17 +24,22 @@ export function EditorPanel({
   language,
   report,
   loading,
+  editorKey = 0,
+  getEditorValueRef,
   onCodeChange,
   onLanguageChange,
   onAnalyze,
   onClear,
+  onLoadSample,
 }: EditorPanelProps) {
   return (
     <div className="panel panelLeft">
       <CodeEditor
+        key={editorKey}
         value={code}
         language={language}
         report={report}
+        getEditorValueRef={getEditorValueRef}
         onCodeChange={onCodeChange}
         onLanguageChange={onLanguageChange}
       />
@@ -65,7 +73,7 @@ export function EditorPanel({
         <Button
           variant="ghost"
           className="btn-orange"
-          onClick={() => onCodeChange(SAMPLE_CODE)}
+          onClick={() => onLoadSample?.()}
         >
           Load Sample
         </Button>

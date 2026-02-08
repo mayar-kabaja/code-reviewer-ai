@@ -82,7 +82,7 @@ export function ConsolePanel({
               <span className="console-msg-icon">
                 {msg.type === "error" ? "✕" : msg.type === "warn" ? "⚠" : "○"}
               </span>
-              <span className="console-msg-text">{msg.text}</span>
+              <pre className="console-msg-text">{msg.text}</pre>
             </div>
           ))
         )}

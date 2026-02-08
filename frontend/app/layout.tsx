@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, DM_Mono, Outfit } from "next/font/google";
+import { ToasterProvider } from "@/components/ToasterProvider";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -41,9 +42,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmMono.variable} ${outfit.variable}`}>
-      <body style={{ fontFamily: "var(--font-sans), sans-serif" }}>
+    <html lang="en" className={`${dmSans.variable} ${dmMono.variable} ${outfit.variable}`} suppressHydrationWarning>
+      <body style={{ fontFamily: "var(--font-sans), sans-serif" }} suppressHydrationWarning>
         <div className="app-root">
+          <ToasterProvider />
           <svg width={0} height={0} aria-hidden>
             <defs>
               <linearGradient id="g-good">

@@ -1,30 +1,45 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { EditorPanel } from "@/components/EditorPanel";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { ConsolePanel, type ConsoleMessage } from "@/components/ConsolePanel";
 import { VerticalResizeHandle } from "@/components/ResizeHandle";
-import { SAMPLE_CODE } from "@/lib/constants";
+import toast from "react-hot-toast";
+import { SAMPLE_CODES } from "@/lib/constants";
 import { generateSessionId, getApiUrl } from "@/lib/utils";
-import type { ReviewReport, ChatMessage } from "@/lib/types";
+import type { ReviewReport, ChatMessage, Issue } from "@/lib/types";
 
 const CONSOLE_DEFAULT_HEIGHT = 180;
 const LEFT_PANEL_DEFAULT_PCT = 50;
 
 export default function Home() {
   const mainRef = useRef<HTMLDivElement>(null);
+  const codeRef = useRef("");
+  const getEditorValueRef = useRef<() => string>(() => "");
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("");
+  const [editorKey, setEditorKey] = useState(0);
   const [report, setReport] = useState<ReviewReport | null>(null);
+  const [refactoredCode, setRefactoredCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [refactorLoading, setRefactorLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [sessionId] = useState(() => generateSessionId());
   const [consoleMessages, setConsoleMessages] = useState<ConsoleMessage[]>([]);
   const [consoleHeight, setConsoleHeight] = useState(CONSOLE_DEFAULT_HEIGHT);
   const [leftPanelPct, setLeftPanelPct] = useState(LEFT_PANEL_DEFAULT_PCT);
+
+  useEffect(() => {
+    codeRef.current = code;
+  }, [code]);
+
+  const handleCodeChange = useCallback((newCode: string) => {
+    codeRef.current = newCode;
+    setCode(newCode);
+  }, []);
 
   const addConsoleMessage = useCallback((type: ConsoleMessage["type"], text: string) => {
     setConsoleMessages((prev) => [
@@ -33,46 +48,118 @@ export default function Home() {
     ]);
   }, []);
 
+  const runReviewWithCode = useCallback(
+    async (codeToReview: string, lang?: string) => {
+      if (!codeToReview.trim()) return;
+      setLoading(true);
+      setReport(null);
+      setRefactoredCode(null);
+      setConsoleMessages([]); // show only this run's result
+      try {
+        const res = await fetch(`${getApiUrl()}/api/review`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: codeToReview, language: lang || undefined }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          const report = data.report as ReviewReport;
+          setReport(report);
+          setRefactoredCode(report?.refactored_code ?? null);
+          const issueCount = report?.issues?.length ?? 0;
+          addConsoleMessage("info", `Analysis complete. ${issueCount} issue(s) found. Score: ${report?.health_score ?? "—"}`);
+          report?.issues?.forEach((issue: Issue, i: number) => {
+            addConsoleMessage("info", `[${i + 1}] ${issue.severity ?? "issue"}: ${issue.description ?? ""}`);
+          });
+        } else {
+          const err = data.error ?? "Unknown error";
+          addConsoleMessage("error", `Review failed: ${err}`);
+          setReport(null);
+          setRefactoredCode(null);
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Connection failed";
+        addConsoleMessage("error", msg);
+        setReport(null);
+        setRefactoredCode(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [addConsoleMessage]
+  );
+
   const runReview = useCallback(async () => {
-    if (!code.trim()) {
-      alert("Please paste some code");
+    const fromEditor = getEditorValueRef.current?.();
+    const currentCode = (typeof fromEditor === "string" ? fromEditor : codeRef.current ?? "").trim();
+    if (!currentCode) {
+      toast.error("Please paste some code");
       return;
     }
-    setLoading(true);
+    await runReviewWithCode(currentCode, language);
+  }, [language, runReviewWithCode]);
+
+  const handleClear = useCallback(() => {
+    codeRef.current = "";
+    setCode("");
+    setReport(null);
+    setRefactoredCode(null);
+  }, []);
+
+  const loadRandomSample = useCallback(() => {
+    const sample = SAMPLE_CODES[Math.floor(Math.random() * SAMPLE_CODES.length)];
+    codeRef.current = sample.code;
+    setCode(sample.code);
+    setLanguage(sample.language);
+    setEditorKey((k) => k + 1);
+  }, []);
+
+  const runRefactor = useCallback(async () => {
+    const fromEditor = getEditorValueRef.current?.();
+    const currentCode = (typeof fromEditor === "string" ? fromEditor : codeRef.current ?? "").trim();
+    if (!currentCode) {
+      toast.error("Please paste some code");
+      return;
+    }
+    setRefactorLoading(true);
+    setRefactoredCode(null);
     try {
-      const res = await fetch(`${getApiUrl()}/api/review`, {
+      const res = await fetch(`${getApiUrl()}/api/refactor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language: language || undefined }),
+        body: JSON.stringify({ code: currentCode, language: language || undefined }),
       });
       const data = await res.json();
-      if (data.success) {
-        setReport(data.report);
+      if (data.success && data.refactored_code != null) {
+        setRefactoredCode(data.refactored_code);
       } else {
-        const err = data.error ?? "Unknown error";
-        addConsoleMessage("error", `Review failed: ${err}`);
-        setReport(null);
+        addConsoleMessage("error", data.error ?? "Refactor failed");
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Connection failed";
       addConsoleMessage("error", msg);
-      setReport(null);
     } finally {
-      setLoading(false);
+      setRefactorLoading(false);
     }
-  }, [code, language, addConsoleMessage]);
-
-  const handleClear = useCallback(() => {
-    setCode("");
-    setReport(null);
-  }, []);
+  }, [language, addConsoleMessage]);
 
   const handleCopyRefactored = useCallback(() => {
-    if (report?.refactored_code) {
-      navigator.clipboard.writeText(report.refactored_code);
-      alert("Copied!");
+    const toCopy = refactoredCode ?? report?.refactored_code;
+    if (toCopy) {
+      navigator.clipboard.writeText(toCopy);
+      toast.success("Copied!");
     }
-  }, [report]);
+  }, [refactoredCode, report]);
+
+  const handleApplyRefactored = useCallback(() => {
+    const toApply = refactoredCode ?? report?.refactored_code;
+    if (toApply) {
+      codeRef.current = toApply;
+      setCode(toApply);
+      setEditorKey((k) => k + 1);
+      runReviewWithCode(toApply, language);
+    }
+  }, [refactoredCode, report, language, runReviewWithCode]);
 
   const sendChat = useCallback(
     async (message: string) => {
@@ -89,7 +176,7 @@ export default function Home() {
           body: JSON.stringify({
             session_id: sessionId,
             message,
-            code,
+            code: getEditorValueRef.current?.() || codeRef.current || "",
           }),
         });
         const data = await res.json();
@@ -111,7 +198,7 @@ export default function Home() {
         setChatLoading(false);
       }
     },
-    [sessionId, code, addConsoleMessage]
+    [sessionId, addConsoleMessage]
   );
 
   return (
@@ -128,10 +215,13 @@ export default function Home() {
             language={language}
             report={report}
             loading={loading}
-            onCodeChange={setCode}
+            editorKey={editorKey}
+            getEditorValueRef={getEditorValueRef}
+            onCodeChange={handleCodeChange}
             onLanguageChange={setLanguage}
             onAnalyze={runReview}
             onClear={handleClear}
+            onLoadSample={loadRandomSample}
           />
         </div>
         <VerticalResizeHandle
@@ -143,11 +233,15 @@ export default function Home() {
         <div className="main-right">
           <ResultsPanel
             report={report}
+            refactoredCode={refactoredCode}
+            refactorLoading={refactorLoading}
             loading={loading}
             chatMessages={chatMessages}
             chatLoading={chatLoading}
             onSendChat={sendChat}
+            onRefactor={runRefactor}
             onCopyRefactored={handleCopyRefactored}
+            onApplyRefactored={handleApplyRefactored}
           />
         </div>
       </div>

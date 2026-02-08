@@ -1,8 +1,11 @@
+import type { ReactNode } from "react";
+
 interface EmptyStateProps {
   icon: string;
   title: string;
   description?: string;
   iconBg?: string;
+  action?: ReactNode;
 }
 
 export function EmptyState({
@@ -10,6 +13,7 @@ export function EmptyState({
   title,
   description,
   iconBg,
+  action,
 }: EmptyStateProps) {
   return (
     <div
@@ -31,6 +35,7 @@ export function EmptyState({
       </div>
       <div className="empty-title">{title}</div>
       {description && <div className="empty-desc">{description}</div>}
+      {action && <div className="empty-action">{action}</div>}
     </div>
   );
 }

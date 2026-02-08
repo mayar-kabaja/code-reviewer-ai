@@ -1,96 +1,75 @@
 # CodeReview AI
 
-**CodeReview AI** – Paste your code and get AI-powered feedback. Clear name, clear idea: review your code for bugs, security, and style. Next.js frontend + optional Node/Express backend.
+**CodeReview AI** – Paste your code and get AI-powered feedback. Next.js frontend + Python (FastAPI) backend.
 
 ## File structure
 
-The repo has two main code folders: **frontend** and **backend**. All app code lives in one of them; the root only has workspace config and scripts.
+The repo has two main code folders: **frontend** and **backend-python**. The root holds workspace config and scripts.
 
 ```
 code-reviewer-ai/
-├── frontend/               # Next.js app (all UI and Next API routes)
-│   ├── app/                # App Router
-│   │   ├── api/            # API routes (stubs; use when backend not running)
-│   │   │   ├── chat/route.ts
-│   │   │   └── review/route.ts
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/         # React UI
-│   │   ├── ui/             # Button, EmptyState, LoadingSpinner
-│   │   ├── CodeEditor.tsx
-│   │   ├── EditorPanel.tsx
-│   │   ├── Header.tsx
-│   │   ├── ResultsPanel.tsx
-│   │   ├── OverviewTab.tsx
-│   │   ├── IssuesTab.tsx
-│   │   ├── RefactoredTab.tsx
-│   │   └── ChatTab.tsx
-│   ├── lib/                # Shared (frontend)
-│   │   ├── types.ts
-│   │   ├── constants.ts
-│   │   └── utils.ts
-│   ├── public/             # Static assets (e.g. favicon.svg)
+├── frontend/               # Next.js app (UI and API route stubs)
+│   ├── app/
+│   ├── components/
+│   ├── lib/
+│   ├── public/
 │   ├── package.json
 │   ├── next.config.js
 │   └── tsconfig.json
-├── backend/                # Standalone Express API server
-│   ├── src/
-│   │   └── index.ts        # Express: POST /api/review, POST /api/chat
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── README.md
-├── package.json            # Root workspace scripts (dev, dev:backend, build, etc.)
+├── backend-python/         # FastAPI API server (POST /api/review, /api/chat)
+│   ├── app.py
+│   ├── requirements.txt
+│   ├── .venv/              # (create with python -m venv .venv)
+│   └── .env                # API keys (see .env.example)
+├── package.json            # Root scripts (dev, dev:backend, build, etc.)
 ├── pnpm-workspace.yaml
 ├── .env.example
 └── .gitignore
 ```
 
-- **Frontend** (Next.js): `frontend/` — `app/`, `components/`, `lib/`, `public/`. Serves the UI and can proxy to the backend.
-- **Backend** (Express): `backend/` — add your review/chat logic (e.g. Groq/OpenAI) here. Same API shape as `frontend/app/api/`.
+- **Frontend** (Next.js): `frontend/` — UI and stubs. Set `NEXT_PUBLIC_API_URL` to use the backend.
+- **Backend** (Python): `backend-python/` — FastAPI app. Add your LLM logic (e.g. OpenAI/Groq) in `app.py`.
 
 ## Run
 
-**Frontend only** (uses Next.js API route stubs):
+**1. Frontend**
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Without a backend URL, it uses Next.js API route stubs.
 
-**With backend** (recommended when you add real LLM calls):
+**2. Backend (Python)**
 
-1. Install backend deps and run the API:
-
-```bash
-cd backend && pnpm install && pnpm dev
-```
-
-Or from repo root:
+From repo root:
 
 ```bash
 pnpm dev:backend
 ```
 
-2. Point the app at the backend. Create `.env.local` in the **frontend** folder (or repo root):
+Or from `backend-python`:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:4000
+cd backend-python
+.venv/bin/pip install -r requirements.txt   # first time
+.venv/bin/uvicorn app:app --reload --port 8000
 ```
 
-3. In another terminal, run the frontend (from repo root):
+**3. Connect frontend to backend**
 
-```bash
-pnpm dev
+In **frontend/.env.local**:
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-The app will call `http://localhost:4000/api/review` and `/api/chat` instead of the Next.js routes.
+Restart the frontend (`pnpm dev`). The app will call `http://localhost:8000/api/review` and `/api/chat`.
 
 ## Backend API
 
-- `POST /api/review` – body: `{ code, language? }` → `{ success, report }`
-- `POST /api/chat` – body: `{ session_id, message, code? }` → `{ success, response }`
+- `POST /api/review` – body: `{ "code": string, "language"?: string }` → `{ "success", "report" }`
+- `POST /api/chat` – body: `{ "session_id", "message", "code"?: string }` → `{ "success", "response" }`
 
-Implement these in `backend/src/index.ts` (e.g. with Groq or OpenAI SDK).
+Implement these in `backend-python/app.py` (e.g. with OpenAI or Groq SDK).

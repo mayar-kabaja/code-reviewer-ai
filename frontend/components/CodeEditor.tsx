@@ -1,8 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { MutableRefObject } from "react";
 import type { ReviewReport } from "@/lib/types";
+
+interface EditorViewLike {
+  state: { doc: { toString(): string } };
+}
 
 const CodeMirrorEditor = dynamic(
   () => import("@uiw/react-codemirror").then((m) => m.default),
@@ -25,7 +30,7 @@ const LANG_OPTIONS = [
 const LANG_LOADERS: Record<string, () => Promise<unknown>> = {
   python: () => import("@codemirror/lang-python").then((m) => m.python()),
   javascript: () => import("@codemirror/lang-javascript").then((m) => m.javascript()),
-  typescript: () => import("@codemirror/lang-javascript").then((m) => m.typescript()),
+  typescript: () => import("@codemirror/lang-javascript").then((m) => (m as { typescript?: () => unknown }).typescript?.() ?? (m as { javascript: () => unknown }).javascript()),
   java: () => import("@codemirror/lang-java").then((m) => m.java()),
   cpp: () => import("@codemirror/lang-cpp").then((m) => m.cpp()),
   go: () => import("@codemirror/lang-go").then((m) => m.go()),
@@ -40,6 +45,8 @@ interface CodeEditorProps {
   onLanguageChange: (lang: string) => void;
   onCodeChange: (code: string) => void;
   report: ReviewReport | null;
+  /** Ref to a function that returns the current editor content (used when clicking Analyze). */
+  getEditorValueRef?: MutableRefObject<() => string>;
 }
 
 export function CodeEditor({
@@ -47,14 +54,34 @@ export function CodeEditor({
   language,
   onLanguageChange,
   onCodeChange,
+  getEditorValueRef,
 }: CodeEditorProps) {
   const [extensions, setExtensions] = useState<unknown[]>([]);
   const mode = language || "python";
+  const viewRef = useRef<EditorViewLike | null>(null);
 
   useEffect(() => {
     const loader = LANG_LOADERS[mode] || LANG_LOADERS.python;
     loader().then((ext) => setExtensions([ext]));
   }, [mode]);
+
+  const onCreateEditor = useCallback(
+    (view: EditorViewLike) => {
+      viewRef.current = view;
+      if (getEditorValueRef) {
+        getEditorValueRef.current = () =>
+          viewRef.current?.state.doc.toString() ?? "";
+      }
+    },
+    [getEditorValueRef]
+  );
+
+  const handleChange = useCallback(
+    (v: string) => {
+      onCodeChange(v);
+    },
+    [onCodeChange]
+  );
 
   return (
     <>
@@ -76,8 +103,9 @@ export function CodeEditor({
         <CodeMirrorEditor
           value={value}
           height="100%"
-          extensions={extensions}
-          onChange={(v) => onCodeChange(v)}
+          extensions={extensions as any}
+          onChange={handleChange}
+          onCreateEditor={onCreateEditor}
           theme="dark"
           basicSetup={{
             lineNumbers: true,

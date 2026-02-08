@@ -12,20 +12,28 @@ import type { ReviewReport, ChatMessage } from "@/lib/types";
 
 interface ResultsPanelProps {
   report: ReviewReport | null;
+  refactoredCode: string | null;
+  refactorLoading: boolean;
   loading: boolean;
   chatMessages: ChatMessage[];
   chatLoading: boolean;
   onSendChat: (message: string) => void;
+  onRefactor: () => void;
   onCopyRefactored: () => void;
+  onApplyRefactored: () => void;
 }
 
 export function ResultsPanel({
   report,
+  refactoredCode,
+  refactorLoading,
   loading,
   chatMessages,
   chatLoading,
   onSendChat,
+  onRefactor,
   onCopyRefactored,
+  onApplyRefactored,
 }: ResultsPanelProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const issueCount = report?.issues?.length ?? 0;
@@ -82,12 +90,14 @@ export function ResultsPanel({
         id="refactored"
         className={`tab-content ${activeTab === "refactored" ? "active" : ""}`}
       >
-        {loading ? (
+        {refactorLoading ? (
           <LoadingState />
         ) : (
           <RefactoredTab
-            refactoredCode={report?.refactored_code}
+            refactoredCode={refactoredCode ?? report?.refactored_code}
+            onRefactor={onRefactor}
             onCopy={onCopyRefactored}
+            onApply={onApplyRefactored}
           />
         )}
       </div>
