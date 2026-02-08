@@ -73,3 +73,16 @@ Restart the frontend (`pnpm dev`). The app will call `http://localhost:8000/api/
 - `POST /api/chat` – body: `{ "session_id", "message", "code"?: string }` → `{ "success", "response" }`
 
 Implement these in `backend-python/app.py` (e.g. with OpenAI or Groq SDK).
+
+## Deploy on Render
+
+The repo includes a **Render Blueprint** (`render.yaml`) that defines two web services: the Python backend and the Next.js frontend.
+
+1. **Push the repo to GitHub** and connect it to [Render](https://render.com).
+2. **New → Blueprint** and link the repo. Render will create both services from `render.yaml`.
+3. **Configure environment variables** in the Render Dashboard:
+   - **Backend** (`code-reviewer-ai-backend`): add **`GROQ_API_KEY`** (your Groq API key).
+   - **Frontend** (`code-reviewer-ai-frontend`): add **`NEXT_PUBLIC_API_URL`** = your backend URL (e.g. `https://code-reviewer-ai-backend.onrender.com`).
+4. Redeploy the frontend after setting `NEXT_PUBLIC_API_URL` so the build picks it up.
+
+The backend uses `PORT` from Render and allows CORS from `*.onrender.com` and localhost. No extra CORS config is needed for the default Render URLs.

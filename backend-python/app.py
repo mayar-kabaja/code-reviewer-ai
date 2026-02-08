@@ -12,17 +12,22 @@ from pydantic import BaseModel
 
 load_dotenv()
 
-# Allow any localhost origin (any port) for local dev.
-def _is_local_origin(origin: str) -> bool:
+# Allow localhost (any port) for local dev and *.onrender.com / ALLOWED_ORIGINS for production.
+def _is_allowed_origin(origin: str) -> bool:
     if not origin:
         return False
-    return (
-        origin.startswith("http://localhost:") or origin.startswith("http://127.0.0.1:")
-    )
+    if origin.startswith("http://localhost:") or origin.startswith("http://127.0.0.1:"):
+        return True
+    if ".onrender.com" in origin:
+        return True
+    allowed = os.environ.get("ALLOWED_ORIGINS", "")
+    if allowed and origin in (s.strip() for s in allowed.split(",")):
+        return True
+    return False
 
 
 def _cors_headers_for_origin(origin: str) -> dict:
-    if not _is_local_origin(origin):
+    if not _is_allowed_origin(origin):
         origin = "http://localhost:3000"
     return {
         "Access-Control-Allow-Origin": origin,
@@ -34,10 +39,11 @@ def _cors_headers_for_origin(origin: str) -> dict:
 
 app = FastAPI()
 
-# CORS for POST/GET responses (allow any localhost port)
+# CORS: localhost + *.onrender.com + ALLOWED_ORIGINS (comma-separated)
+_origin_regex = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://[a-z0-9-]+\.onrender\.com$"
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origin_regex=_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,7 +57,7 @@ class OptionsPreflightMiddleware:
 
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http" and scope.get("method") == "OPTIONS":
-            origin = "http://localhost:3000"
+            origin = ""
             for name, value in scope.get("headers", []):
                 if name == b"origin":
                     origin = value.decode("latin-1")
@@ -349,4 +355,5 @@ def chat(body: ChatRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
