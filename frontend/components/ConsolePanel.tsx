@@ -2,7 +2,7 @@
 
 export interface ConsoleMessage {
   id: string;
-  type: "error" | "log" | "warn";
+  type: "error" | "log" | "warn" | "info";
   text: string;
 }
 
