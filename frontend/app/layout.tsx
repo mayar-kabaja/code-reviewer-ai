@@ -22,14 +22,26 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://code-reviewer-ai-9306.onrender.com"), 
   title: "CodeReview AI – Review Your Code",
   description: "AI-powered code review and analysis. Paste code, get feedback.",
   icons: {
     icon: "/favicon.svg",
     apple: "/favicon.svg",
   },
+  openGraph: {
+    title: "CodeReview AI – Review Your Code",
+    description: "AI-powered code review and analysis. Paste code, get feedback.",
+    images: ["/og-image.png"],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CodeReview AI – Review Your Code",
+    description: "AI-powered code review and analysis. Paste code, get feedback.",
+    images: ["/og-image.png"],
+  },
 };
-
 export const viewport = {
   width: "device-width",
   initialScale: 1,
