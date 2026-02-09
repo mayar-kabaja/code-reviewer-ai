@@ -66,7 +66,12 @@ export function EditorPanel({
             <>🔍 Analyze Code</>
           )}
         </Button>
-        <Button variant="secondary" onClick={onClear}>
+        <Button
+          variant="secondary"
+          onClick={onClear}
+          disabled={loading}
+          title={loading ? "Wait for analysis to finish" : undefined}
+        >
           🗑️ Clear
         </Button>
         <div style={{ flex: 1 }} />
