@@ -14,7 +14,7 @@ export function OverviewTab({ report }: OverviewTabProps) {
     <div className="scroll">
       <div className="card score-card">
         <div className="score-ring">
-          <svg width={140} height={140}>
+          <svg width={140} height={140} viewBox="0 0 140 140" className="score-ring-svg">
             <circle className="bg" cx={70} cy={70} r={54} />
             <circle
               className={`progress ${cls}`}

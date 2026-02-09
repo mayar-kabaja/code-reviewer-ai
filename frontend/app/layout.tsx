@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { DM_Sans, DM_Mono, Outfit } from "next/font/google";
 import { ToasterProvider } from "@/components/ToasterProvider";
 import "./globals.css";
-
 const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -21,8 +20,10 @@ const outfit = Outfit({
   weight: ["600", "700"],
 });
 
+const siteUrl = "https://code-reviewer-ai-9306.onrender.com";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://code-reviewer-ai-9306.onrender.com"), 
+  metadataBase: new URL(siteUrl),
   title: "CodeReview AI – Review Your Code",
   description: "AI-powered code review and analysis. Paste code, get feedback.",
   icons: {
@@ -32,14 +33,23 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CodeReview AI – Review Your Code",
     description: "AI-powered code review and analysis. Paste code, get feedback.",
-    images: ["/og-image.png"],
+    url: siteUrl,
+    siteName: "CodeReview AI",
+    images: [
+      {
+        url: `${siteUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "CodeReview AI – Review Your Code",
+      },
+    ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "CodeReview AI – Review Your Code",
     description: "AI-powered code review and analysis. Paste code, get feedback.",
-    images: ["/og-image.png"],
+    images: [`${siteUrl}/og-image.png`],
   },
 };
 export const viewport = {

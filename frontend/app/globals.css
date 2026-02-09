@@ -412,6 +412,8 @@ body > div:not(.app-root) {
 
 .score-ring svg {
   transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
 }
 
 .score-ring circle {
@@ -1198,6 +1200,12 @@ body > div:not(.app-root) {
     max-height: none;
   }
 
+  .main-left .panel.panelLeft {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+
   .main-right {
     flex: 1 1 0;
     min-height: 260px;
@@ -1277,21 +1285,22 @@ body > div:not(.app-root) {
   }
 
   .score-card {
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
   }
 
   .score-ring {
-    width: 100px;
-    height: 100px;
-  }
-
-  .score-ring svg {
-    width: 100px;
-    height: 100px;
+    width: 110px;
+    height: 110px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .score-ring .score-num {
-    font-size: 1.75rem;
+    font-size: 1.875rem;
+  }
+
+  .score-label {
+    font-size: 0.8125rem;
   }
 
   .stats {
@@ -1346,19 +1355,36 @@ body > div:not(.app-root) {
     max-height: none;
   }
 
+  .main-left .panel.panelLeft {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+
+  .panel.panelLeft .editorWrap {
+    min-height: 120px;
+  }
+
   .main-right {
     flex: 1 1 0;
     min-height: 220px;
   }
 
   .actions {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
     align-items: stretch;
+  }
+
+  .actions .btn:first-of-type {
+    grid-column: span 2;
   }
 
   .actions .btn {
     width: 100%;
     justify-content: center;
+    min-height: 44px;
   }
 
   .actions > div {
@@ -1377,5 +1403,27 @@ body > div:not(.app-root) {
 
   .refactored-head .btn {
     width: 100%;
+  }
+
+  /* Health score: compact but readable on small mobile */
+  .score-card {
+    padding: 1.25rem 1rem;
+  }
+
+  .score-ring {
+    width: 100px;
+    height: 100px;
+  }
+
+  .score-ring circle {
+    stroke-width: 6;
+  }
+
+  .score-ring .score-num {
+    font-size: 1.625rem;
+  }
+
+  .score-label {
+    font-size: 0.75rem;
   }
 }
