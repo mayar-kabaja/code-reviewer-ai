@@ -21,6 +21,7 @@ const outfit = Outfit({
 });
 
 const siteUrl = "https://code-reviewer-ai-9306.onrender.com";
+const ogImageUrl = `${siteUrl}/og-image.png?v=2`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -37,10 +38,11 @@ export const metadata: Metadata = {
     siteName: "CodeReview AI",
     images: [
       {
-        url: `${siteUrl}/og-image.png`,
+        url: ogImageUrl,
         width: 1200,
         height: 630,
         alt: "CodeReview AI – Review Your Code",
+        type: "image/png",
       },
     ],
     type: "website",
@@ -49,7 +51,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CodeReview AI – Review Your Code",
     description: "AI-powered code review and analysis. Paste code, get feedback.",
-    images: [`${siteUrl}/og-image.png`],
+    images: [ogImageUrl],
   },
 };
 export const viewport = {
