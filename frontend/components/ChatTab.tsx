@@ -9,6 +9,7 @@ import type { ChatMessage } from "@/lib/types";
 interface ChatTabProps {
   messages: ChatMessage[];
   loading: boolean;
+  hasReport: boolean;
   onSend: (message: string) => void;
 }
 
@@ -19,11 +20,12 @@ const INITIAL_MESSAGE: ChatMessage = {
     "Hi! I'm your code review assistant. Run an analysis first, then ask me questions about the issues found.",
 };
 
-export function ChatTab({ messages, loading, onSend }: ChatTabProps) {
+export function ChatTab({ messages, loading, hasReport, onSend }: ChatTabProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const displayMessages = [INITIAL_MESSAGE, ...messages];
+  const chatDisabled = !hasReport || loading;
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
@@ -31,7 +33,7 @@ export function ChatTab({ messages, loading, onSend }: ChatTabProps) {
 
   const handleSubmit = () => {
     const value = inputRef.current?.value?.trim();
-    if (!value || loading) return;
+    if (!value || chatDisabled) return;
     onSend(value);
     if (inputRef.current) inputRef.current.value = "";
   };
@@ -81,12 +83,20 @@ export function ChatTab({ messages, loading, onSend }: ChatTabProps) {
         <textarea
           ref={inputRef}
           className="chat-input"
-          placeholder="Ask about your code..."
+          placeholder={
+            hasReport ? "Ask about your code..." : "Run analysis first to ask questions"
+          }
           rows={1}
           onKeyDown={handleKeyDown}
-          disabled={loading}
+          disabled={chatDisabled}
+          title={!hasReport ? "Run analysis first" : undefined}
         />
-        <Button variant="primary" onClick={handleSubmit} disabled={loading}>
+        <Button
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={chatDisabled}
+          title={!hasReport ? "Run analysis first" : undefined}
+        >
           Send
         </Button>
       </div>

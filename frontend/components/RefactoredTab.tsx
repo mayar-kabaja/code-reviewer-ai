@@ -6,23 +6,41 @@ import { escapeHtml } from "@/lib/utils";
 
 interface RefactoredTabProps {
   refactoredCode: string | null | undefined;
+  hasReport: boolean;
+  refactorLoading: boolean;
   onRefactor: () => void;
   onCopy: () => void;
   onApply: () => void;
 }
 
-export function RefactoredTab({ refactoredCode, onRefactor, onCopy, onApply }: RefactoredTabProps) {
+export function RefactoredTab({
+  refactoredCode,
+  hasReport,
+  refactorLoading,
+  onRefactor,
+  onCopy,
+  onApply,
+}: RefactoredTabProps) {
   if (!refactoredCode) {
     return (
       <div className="scroll">
         <EmptyState
           icon="✨"
-          title="Ready to improve"
-          description="Click Refactor to get an improved version of your code"
+          title={hasReport ? "Ready to improve" : "Analyze first"}
+          description={
+            hasReport
+              ? "Click Refactor to get an improved version of your code"
+              : "Run analysis to enable Refactor"
+          }
           iconBg="rgba(250, 204, 21, 0.15)"
           action={
-            <Button variant="primary" onClick={onRefactor}>
-              Refactor
+            <Button
+              variant="primary"
+              onClick={onRefactor}
+              disabled={!hasReport || refactorLoading}
+              title={!hasReport ? "Analyze code first" : undefined}
+            >
+              {refactorLoading ? "Refactoring…" : "Refactor"}
             </Button>
           }
         />

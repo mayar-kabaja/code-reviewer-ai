@@ -308,7 +308,8 @@ body > div:not(.app-root) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem;
+  padding: 4rem 2rem;
+  min-height: 200px;
 }
 
 .spinner {
@@ -322,8 +323,9 @@ body > div:not(.app-root) {
 }
 
 .loading-text {
-  font-size: 0.875rem;
-  color: var(--text-2);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-1);
 }
 
 .btn {
@@ -960,6 +962,39 @@ body > div:not(.app-root) {
   border-radius: 100px;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+.results-summary {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 1rem 10px;
+  background: var(--bg-3);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+
+.results-summary-lang {
+  padding: 2px 8px;
+  background: var(--bg-2);
+  color: var(--accent);
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.results-summary-sep {
+  color: var(--text-3);
+}
+
+.results-summary-issues {
+  color: var(--text-2);
+}
+
+.results-summary-sev {
+  color: var(--text-3);
+  font-size: 0.75rem;
 }
 
 /* Header logo – use accent from theme */

@@ -8,6 +8,7 @@ import type { Issue } from "@/lib/types";
 
 interface IssuesTabProps {
   issues: Issue[] | null | undefined;
+  hasReport: boolean;
 }
 
 function IssueItem({ issue, index }: { issue: Issue; index: number }) {
@@ -58,15 +59,19 @@ function IssueItem({ issue, index }: { issue: Issue; index: number }) {
   );
 }
 
-export function IssuesTab({ issues }: IssuesTabProps) {
+export function IssuesTab({ issues, hasReport }: IssuesTabProps) {
   if (!issues?.length) {
     return (
       <div className="scroll">
         <EmptyState
-          icon="✅"
-          title="No issues found!"
-          description="Your code looks clean"
-          iconBg="rgba(34,197,94,0.15)"
+          icon={hasReport ? "✅" : "🔍"}
+          title={hasReport ? "No issues found!" : "Ready to analyze"}
+          description={
+            hasReport
+              ? "Your code looks clean"
+              : 'Paste your code and click "Analyze Code" to see issues'
+          }
+          iconBg={hasReport ? "rgba(34,197,94,0.15)" : undefined}
         />
       </div>
     );

@@ -37,6 +37,8 @@ export function ResultsPanel({
 }: ResultsPanelProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const issueCount = report?.issues?.length ?? 0;
+  const summary = report?.summary;
+  const lang = report?.context?.language;
 
   return (
     <div className="panel">
@@ -56,12 +58,39 @@ export function ResultsPanel({
         ))}
       </div>
 
+      {report && (
+        <div className="results-summary">
+          <span className="results-summary-lang">{lang ?? "Unknown"}</span>
+          <span className="results-summary-sep">•</span>
+          <span className="results-summary-issues">
+            {issueCount} issue{issueCount !== 1 ? "s" : ""}
+            {summary &&
+              (summary.critical > 0 ||
+                summary.high > 0 ||
+                summary.medium > 0 ||
+                summary.low > 0) && (
+                <span className="results-summary-sev">
+                  {" "}
+                  ({[
+                    summary.critical > 0 && `${summary.critical} critical`,
+                    summary.high > 0 && `${summary.high} high`,
+                    summary.medium > 0 && `${summary.medium} medium`,
+                    summary.low > 0 && `${summary.low} low`,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")})
+                </span>
+              )}
+          </span>
+        </div>
+      )}
+
       <div
         id="overview"
         className={`tab-content ${activeTab === "overview" ? "active" : ""}`}
       >
         {loading ? (
-          <LoadingState />
+          <LoadingState text="Analyzing…" />
         ) : report ? (
           <OverviewTab report={report} />
         ) : (
@@ -80,9 +109,9 @@ export function ResultsPanel({
         className={`tab-content ${activeTab === "issues" ? "active" : ""}`}
       >
         {loading ? (
-          <LoadingState />
+          <LoadingState text="Analyzing…" />
         ) : (
-          <IssuesTab issues={report?.issues} />
+          <IssuesTab issues={report?.issues} hasReport={!!report} />
         )}
       </div>
 
@@ -91,10 +120,12 @@ export function ResultsPanel({
         className={`tab-content ${activeTab === "refactored" ? "active" : ""}`}
       >
         {refactorLoading ? (
-          <LoadingState />
+          <LoadingState text="Refactoring…" />
         ) : (
           <RefactoredTab
             refactoredCode={refactoredCode ?? report?.refactored_code}
+            hasReport={!!report}
+            refactorLoading={refactorLoading}
             onRefactor={onRefactor}
             onCopy={onCopyRefactored}
             onApply={onApplyRefactored}
@@ -109,6 +140,7 @@ export function ResultsPanel({
         <ChatTab
           messages={chatMessages}
           loading={chatLoading}
+          hasReport={!!report}
           onSend={onSendChat}
         />
       </div>
